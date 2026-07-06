@@ -78,7 +78,7 @@
 
             const widget = new cp.CloudPayments();
 
-            // Параметры виджета (строго по документации)
+            // Параметры виджета (актуальный метод start)
             const intentParams = {
                 publicTerminalId: 'pk_774378acb9906498bfe828d52a0c9', // Ваш Public ID
                 amount: amount,
@@ -91,14 +91,15 @@
                 failRedirectUrl: window.location.href + '?fail',
                 receiptEmail: email,
 
-                // !!! КЛЮЧЕВОЙ МОМЕНТ: все пользовательские данные передаём через `data`
-                // Это поле гарантированно попадает в выгрузку ЛК в колонку «Данные»
+                // !!! КЛЮЧЕВОЙ МОМЕНТ: все пользовательские данные, включая комментарий,
+                // передаём через поле data – именно так, как в вашем рабочем примере.
+                // Это поле гарантированно попадает в выгрузку ЛК в колонку «Данные».
                 data: {
                     lastName: lastName,
                     firstName: firstName,
                     middleName: middleName,
                     phone: phone,
-                    comment: comment,
+                    comment: comment,        // <- комментарий будет виден в выгрузке
                     fund: 'tri-kota'
                 },
 
@@ -122,7 +123,7 @@
                 };
             }
 
-            // Обработчик закрытия виджета (oncomplete)
+            // Обработчик закрытия виджета
             widget.oncomplete = function(result) {
                 console.log('Виджет закрыт, результат:', result);
                 if (result && result.status === 'success') {
