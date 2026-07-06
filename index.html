@@ -136,8 +136,8 @@
 <body>
 
 <div class="card">
-    <h1>🚚 Пожертвование</h1>
-    <div class="sub">Все средства пойдут на помощь жертвам беспощадного Грузовичка</div>
+    <h1>🚚 Благотворительный фонд "Грузовичок-сан"</h1>
+    <div class="sub">Все пожертвованные средства пойдут на помощь в поиске пропавших без вести</div>
 
     <form id="donationForm">
         <div class="row-3">
@@ -209,19 +209,21 @@
         const widget = new cp.CloudPayments();
 
         const options = {
-            publicId: 'pk_3a0775a4af22d745f53ed7774a73d', 
+            publicId: 'pk_3a0775a4af22d745f53ed7774a73d',
             description: description,
             amount: amount,
             currency: 'RUB',
-            invoiceId: 'GRUZ-1', 
+            invoiceId: 'GRUZ-1',
             email: email,
             skin: "modern",
+            culture: "ru-RU",  
+            paymentSchema: "Single",  
             data: {
-                lastName: lastName,
                 firstName: firstName,
+                lastName: lastName,
                 middleName: middleName,
                 phone: phone,
-                comment: comment,       
+                comment: comment,
                 fund: 'gruz-help'
             }
         };
@@ -232,12 +234,13 @@
                 recurrent: { interval: 'Month', period: 1 }
             };
         }
+
         widget.pay('charge', options, {
             onSuccess: function () {
-                alert("Благодарим! Пожертвование прошло успешно");
+                alert("Благодарим! Платёж успешно проведён.");
             },
             onFail: function () {
-                alert("Виджет с оплатой был закрыт. Пожалуйста, повторите попытку ещё раз.");
+                alert("Платёж отменён или произошла ошибка.");
             }
         });
     }
