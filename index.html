@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Благотворительный фонд Грузовичка</title>
+    <title>Благотворительный фонд</title>
+
+    <!-- Подключение скрипта виджета CloudPayments -->
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
 
     <style>
@@ -138,7 +140,7 @@
 
 <div class="card">
     <h1>❤️ Пожертвование</h1>
-    <div class="sub">Все средства пойдут на помощь пострадавшим от столкновения с Грузовиком</div>
+    <div class="sub">Все средства пойдут на помощь детям</div>
 
     <form id="donationForm">
         <div class="row-3">
@@ -193,7 +195,6 @@
         const widget = new cp.CloudPayments();
 
         function start() {
-            // Читаем отдельные поля
             const firstName = document.querySelector('#firstName').value.trim();
             const lastName  = document.querySelector('#lastName').value.trim();
             const middleName = document.querySelector('#middleName').value.trim();
@@ -202,37 +203,41 @@
             const comment   = document.querySelector('#comment').value.trim();
             const recurrentCheck = document.querySelector('#recurrentCheck');
 
-            // Валидация обязательных полей
             if (!firstName) { alert('Заполните имя.'); document.querySelector('#firstName').focus(); return; }
             if (!lastName)  { alert('Заполните фамилию.'); document.querySelector('#lastName').focus(); return; }
             if (!email)     { alert('Заполните E‑mail.'); document.querySelector('#email').focus(); return; }
             if (!phone)     { alert('Заполните телефон.'); document.querySelector('#phone').focus(); return; }
 
-            // Собираем полное имя (для поля fullName, если нужно)
             const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
+
+            // Формируем описание с комментарием
+            let description = 'Пожертвование в фонд';
+            if (comment) {
+                description += '. Комментарий: ' + comment;
+            }
 
             const intentParams = {
                 publicTerminalId: TERMINAL_ID,
                 amount: 500,
                 currency: 'RUB',
                 paymentSchema: 'Single',
-                description: description, 
+                description: description,
                 culture: 'ru-RU',
                 skin: 'modern',
                 successRedirectUrl: SUCCESS_URL,
                 failRedirectUrl: FAIL_URL,
+                receiptEmail: email,                     // для поля Email в выгрузке
+                metadata: {
+                    comment: comment || ''               // дополнительно, если потребуется
+                },
                 userInfo: {
                     firstName: firstName,
                     lastName: lastName,
                     middleName: middleName,
-                    fullName: fullName,          // опционально, для совместимости
+                    fullName: fullName,
                     email: email,
                     phone: phone,
-                    accountId: email,
-                    customField: {
-                        name: 'comment',
-                        value: comment || ''
-                    }
+                    accountId: email
                 }
             };
 
@@ -268,7 +273,6 @@
         }
 
         document.querySelector('#checkout').onclick = start;
-
         document.querySelector('#donationForm').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') e.preventDefault();
         });
