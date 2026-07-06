@@ -212,8 +212,6 @@
                 amount: 500          // сумма регулярного платежа
             };
         }
-
-        // 4. Запуск виджета (метод start, возвращает Promise<WidgetResult>)
         widget.start(intentParams)
             .then(function(widgetResult) {
                 console.log('Платёж успешен:', widgetResult);
