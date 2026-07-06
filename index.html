@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Благотворительный фонд — пожертвование</title>
-
-    <!-- Подключение скрипта виджета (строго по документации) -->
+    <title>Благотворительный фонд — Грузовичок-сан</title>
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
 
     <style>
-        /* Минимальный дизайн (не влияет на функциональность) */
         * {
             margin: 0;
             padding: 0;
@@ -138,7 +135,6 @@
     <h1>❤️ Пожертвование</h1>
     <div class="sub">Все средства пойдут на помощь детям</div>
 
-    <!-- Форма сбора данных (email, телефон, ФИО, комментарий) -->
     <form id="donationForm">
         <div class="form-group">
             <label for="fullName">ФИО</label>
@@ -161,13 +157,10 @@
             <textarea id="comment" placeholder="Ваше пожелание..."></textarea>
         </div>
 
-        <!-- Чекбокс «сделать платеж ежемесячным» -->
         <div class="checkbox-group">
             <input type="checkbox" id="recurrentCheck">
             <label for="recurrentCheck">🔁 Сделать платеж ежемесячным</label>
         </div>
-
-        <!-- Кнопка оплаты с id="checkout" (как в документации) -->
         <button type="button" class="btn-pay" id="checkout">💳 Оплатить 500 ₽</button>
 
         <div class="footnote">Безопасный платёж через CloudPayments</div>
@@ -177,12 +170,8 @@
 <script>
     'use strict';
 
-    // ---------- экземпляр виджета (по второму примеру документации) ----------
     const widget = new cp.CloudPayments();
-
-    // ---------- функция start (по документации) ----------
     function start() {
-        // 1. Валидация формы (все поля обязательны, кроме комментария)
         const fullName = document.querySelector('#fullName').value.trim();
         const email    = document.querySelector('#email').value.trim();
         const phone    = document.querySelector('#phone').value.trim();
@@ -192,24 +181,23 @@
         if (!email)    { alert('Заполните E‑mail.'); document.querySelector('#email').focus(); return; }
         if (!phone)    { alert('Заполните телефон.'); document.querySelector('#phone').focus(); return; }
 
-        // 2. Формирование параметров (строго по документации)
+  
         const intentParams = {
-            // Обязательные параметры (из документации)
             publicTerminalId: 'pk_8f2b672d45ba2887ad7471e4c5a7f', // ваш publicId
             amount: 500,                                          // сумма
             currency: 'RUB',                                     // валюта
             paymentSchema: 'Single',                             // схема (Single / Dual) – обязателен
 
-            // Необязательные, но используемые в примере
+
             description: 'Пожертвование в фонд',
             culture: 'ru-RU',
             skin: 'modern',
 
-            // Данные плательщика (userInfo) – для отображения в ЛК
             userInfo: {
                 fullName: fullName,
                 email: email,
                 phone: phone,
+                accountId: email,          // <-- добавлен обязательный идентификатор
                 customField: {
                     name: 'comment',
                     value: comment || ''
@@ -217,7 +205,6 @@
             }
         };
 
-        // 3. Если чекбокс активен – добавляем рекуррент (по документации)
         if (document.querySelector('#recurrentCheck').checked) {
             intentParams.recurrent = {
                 interval: 'Month',   // интервал – месяц
