@@ -188,7 +188,6 @@
 
 <script>
     function startPayment() {
-        // ----- Сбор данных с формы -----
         const amount = parseFloat(document.getElementById('amount').value);
         if (!amount || amount < 100) {
             alert("Введите сумму не менее 100 ₽");
@@ -211,61 +210,39 @@
         // ----- Создаём виджет -----
         const widget = new cp.CloudPayments();
 
-        // ----- Параметры (только самое необходимое) -----
-        const intentParams = {
-            publicTerminalId: 'pk_3a0775a4af22d745f53ed7774a73d', // Ваш Public ID
+        // ----- Параметры (как в рабочем примере «Три Кота») -----
+        const options = {
+            publicId: 'pk_3a0775a4af22d745f53ed7774a73d', // Ваш Public ID
+            description: description,
             amount: amount,
             currency: 'RUB',
-            paymentSchema: 'Single',
-            description: description,
-            culture: 'ru-RU',
-            skin: 'modern',
-            successRedirectUrl: window.location.href + '?success',
-            failRedirectUrl: window.location.href + '?fail',
-            receiptEmail: email,
-
-            // ВСЕ ДАННЫЕ (включая комментарий) – только через `data`
+            invoiceId: 'FOND-123', // можно заменить на что-то уникальное
+            email: email,
+            skin: "modern",
             data: {
                 lastName: lastName,
                 firstName: firstName,
                 middleName: middleName,
                 phone: phone,
-                comment: comment,          // ← комментарий будет в колонке "Данные"
+                comment: comment,       
                 fund: 'children-help'
             }
         };
 
-        // Если выбран ежемесячный платёж – добавляем recurrent и accountId
         if (isMonthly) {
-            intentParams.accountId = email;   // обязательно для рекуррента
-            intentParams.recurrent = {
-                interval: 'Month',
-                period: 1,
-                amount: amount
+            options.accountId = email;
+            options.data.cloudPayments = {
+                recurrent: { interval: 'Month', period: 1 }
             };
         }
-
-        // ----- Обработчик закрытия виджета -----
-        widget.oncomplete = function(result) {
-            console.log('Виджет закрыт, результат:', result);
-            if (result && result.status === 'success') {
-                alert('Спасибо! Платёж успешно проведён ❤️');
-            } else if (result && result.status === 'fail') {
-                alert('Платёж не удался: ' + (result.message || 'ошибка'));
-            } else if (result && result.type === 'cancel') {
-                console.log('Платёж отменён пользователем');
+        widget.pay('charge', options, {
+            onSuccess: function () {
+                alert("Спасибо! Пожертвование прошло успешно ❤️");
+            },
+            onFail: function () {
+                alert("Виджет с оплатой был закрыт. Пожалуйста, повторите попытку ещё раз.");
             }
-        };
-
-        // ----- Запуск виджета -----
-        widget.start(intentParams)
-            .then(function(widgetResult) {
-                console.log('Promise успех:', widgetResult);
-            })
-            .catch(function(error) {
-                console.error('Ошибка при запуске виджета:', error);
-                alert('Ошибка запуска виджета. Проверьте консоль (F12).');
-            });
+        });
     }
 </script>
 
