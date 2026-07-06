@@ -210,20 +210,20 @@
 
             const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
 
-            // Базовые параметры виджета
             const intentParams = {
                 publicTerminalId: TERMINAL_ID,
                 amount: 500,
                 currency: 'RUB',
                 paymentSchema: 'Single',
-                description: 'Пожертвование в фонд', // Краткое описание
+                description: 'Пожертвование в фонд',
                 culture: 'ru-RU',
                 skin: 'modern',
                 successRedirectUrl: SUCCESS_URL,
                 failRedirectUrl: FAIL_URL,
                 receiptEmail: email,
-                metadata: {
-                    userComment: comment || '' // <-- Комментарий пользователя
+                // Передаём комментарий через data (jsonData)
+                data: {
+                    comment: comment || ''   // произвольный набор параметров
                 },
                 userInfo: {
                     firstName: firstName,
