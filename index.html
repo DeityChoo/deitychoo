@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Благотворительный фонд</title>
-
-    <!-- Подключение скрипта виджета CloudPayments -->
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
-
     <style>
         * {
             margin: 0;
@@ -137,11 +134,9 @@
     </style>
 </head>
 <body>
-
 <div class="card">
     <h1>❤️ Пожертвование</h1>
-    <div class="sub">Все средства пойдут на помощь жертвам грузовиков</div>
-
+    <div class="sub">Все средства пойдут на помощь детям</div>
     <form id="donationForm">
         <div class="row-3">
             <div class="form-group">
@@ -157,7 +152,6 @@
                 <input type="text" id="middleName" placeholder="Иванович">
             </div>
         </div>
-
         <div class="row-2">
             <div class="form-group">
                 <label for="email">E‑mail</label>
@@ -168,32 +162,25 @@
                 <input type="tel" id="phone" placeholder="+7 999 123 45 67" required>
             </div>
         </div>
-
         <div class="form-group">
             <label for="comment">Комментарий</label>
             <textarea id="comment" placeholder="Ваше пожелание..."></textarea>
         </div>
-
         <div class="checkbox-group">
             <input type="checkbox" id="recurrentCheck">
             <label for="recurrentCheck">🔁 Сделать платеж ежемесячным</label>
         </div>
-
         <button type="button" class="btn-pay" id="checkout">💳 Оплатить 500 ₽</button>
         <div class="footnote">Безопасный платёж через CloudPayments</div>
     </form>
 </div>
-
 <script>
     (function() {
         'use strict';
-
         const TERMINAL_ID = 'pk_3a0775a4af22d745f53ed7774a73d';
         const SUCCESS_URL = window.location.href + '?payment=success';
         const FAIL_URL    = window.location.href + '?payment=fail';
-
         const widget = new cp.CloudPayments();
-
         function start() {
             const firstName = document.querySelector('#firstName').value.trim();
             const lastName  = document.querySelector('#lastName').value.trim();
@@ -202,29 +189,25 @@
             const phone     = document.querySelector('#phone').value.trim();
             const comment   = document.querySelector('#comment').value.trim();
             const recurrentCheck = document.querySelector('#recurrentCheck');
-
             if (!firstName) { alert('Заполните имя.'); document.querySelector('#firstName').focus(); return; }
             if (!lastName)  { alert('Заполните фамилию.'); document.querySelector('#lastName').focus(); return; }
             if (!email)     { alert('Заполните E‑mail.'); document.querySelector('#email').focus(); return; }
             if (!phone)     { alert('Заполните телефон.'); document.querySelector('#phone').focus(); return; }
-
             const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
-
-            // description теперь содержит ТОЛЬКО комментарий
-            // если комментарий пустой, ставим стандартную фразу
-            const descriptionText = comment || 'Пожертвование в фонд';
-
             const intentParams = {
                 publicTerminalId: TERMINAL_ID,
                 amount: 500,
                 currency: 'RUB',
                 paymentSchema: 'Single',
-                description: descriptionText,          // <- вот здесь чистый комментарий
+                description: 'Пожертвование в фонд',
                 culture: 'ru-RU',
                 skin: 'modern',
                 successRedirectUrl: SUCCESS_URL,
                 failRedirectUrl: FAIL_URL,
                 receiptEmail: email,
+                metadata: {
+                    comment: comment || ''
+                },
                 userInfo: {
                     firstName: firstName,
                     lastName: lastName,
@@ -235,7 +218,6 @@
                     accountId: email
                 }
             };
-
             if (recurrentCheck.checked) {
                 intentParams.recurrent = {
                     interval: 'Month',
@@ -243,9 +225,7 @@
                     amount: 500
                 };
             }
-
             console.log('Запуск виджета с параметрами:', intentParams);
-
             widget.oncomplete = function(result) {
                 console.log('Виджет закрыт, результат:', result);
                 if (result && result.status === 'success') {
@@ -256,7 +236,6 @@
                     console.log('Платёж отменён пользователем');
                 }
             };
-
             widget.start(intentParams)
                 .then(function(widgetResult) {
                     console.log('Promise успех:', widgetResult);
@@ -266,14 +245,11 @@
                     alert('Ошибка запуска виджета. Смотрите консоль (F12).');
                 });
         }
-
         document.querySelector('#checkout').onclick = start;
         document.querySelector('#donationForm').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') e.preventDefault();
         });
-
     })();
 </script>
-
 </body>
 </html>
