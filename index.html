@@ -6,6 +6,7 @@
     <title>Благотворительный фонд</title>
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
     <style>
+        /* Ваш старый CSS (без изменений) */
         * {
             margin: 0;
             padding: 0;
@@ -167,11 +168,6 @@
         </div>
 
         <div class="form-group">
-            <label for="amount">Сумма (₽)</label>
-            <input type="number" id="amount" value="500" min="100" placeholder="Сумма" required>
-        </div>
-
-        <div class="form-group">
             <label for="comment">Комментарий</label>
             <textarea id="comment" placeholder="Ваше пожелание..."></textarea>
         </div>
@@ -181,104 +177,118 @@
             <label for="recurrentCheck">🔁 Сделать платеж ежемесячным</label>
         </div>
 
-        <button type="button" class="btn-pay" onclick="startPayment()">💳 Оплатить</button>
+        <button type="button" class="btn-pay" id="checkout">💳 Оплатить 500 ₽</button>
         <div class="footnote">Безопасный платёж через CloudPayments</div>
     </form>
 </div>
 
 <script>
-    function startPayment() {
-        // 1. Собираем данные с формы
-        const amount = parseFloat(document.getElementById('amount').value);
-        if (!amount || amount < 100) {
-            alert("Введите сумму не менее 100 ₽");
-            return;
-        }
+    (function() {
+        'use strict';
 
-        const email = document.getElementById('email').value.trim();
-        const lastName = document.getElementById('lastName').value.trim();
-        const firstName = document.getElementById('firstName').value.trim();
-        const middleName = document.getElementById('middleName').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const comment = document.getElementById('comment').value.trim();
-        const isMonthly = document.getElementById('recurrentCheck').checked;
+        const TERMINAL_ID = 'pk_3a0775a4af22d745f53ed7774a73d';
+        const SUCCESS_URL = window.location.href + '?payment=success';
+        const FAIL_URL    = window.location.href + '?payment=fail';
 
-        // 2. Формируем описание
-        const description = isMonthly
-            ? `Ежемесячное пожертвование — ${amount} ₽`
-            : `Единоразовое пожертвование — ${amount} ₽`;
-
-        // 3. Создаём виджет
         const widget = new cp.CloudPayments();
 
-        // 4. Параметры (актуальный метод start, с publicTerminalId)
-        const intentParams = {
-            publicTerminalId: 'pk_3a0775a4af22d745f53ed7774a73d', // Ваш Public ID
-            amount: amount,
-            currency: 'RUB',
-            paymentSchema: 'Single',
-            description: description,
-            culture: 'ru-RU',
-            skin: 'modern',
-            successRedirectUrl: window.location.href + '?success',
-            failRedirectUrl: window.location.href + '?fail',
-            receiptEmail: email,
+        function start() {
+            const firstName = document.querySelector('#firstName').value.trim();
+            const lastName  = document.querySelector('#lastName').value.trim();
+            const middleName = document.querySelector('#middleName').value.trim();
+            const email     = document.querySelector('#email').value.trim();
+            const phone     = document.querySelector('#phone').value.trim();
+            const comment   = document.querySelector('#comment').value.trim();
+            const recurrentCheck = document.querySelector('#recurrentCheck');
 
-            // --------------------------------------------------------------
-            // ВСЕ ДОПОЛНИТЕЛЬНЫЕ ДАННЫЕ, ВКЛЮЧАЯ КОММЕНТАРИЙ, ПЕРЕДАЁМ ЧЕРЕЗ `data`
-            // Это гарантирует их появление в выгрузке ЛК в колонке «Данные»
-            // --------------------------------------------------------------
-            data: {
-                lastName: lastName,
-                firstName: firstName,
-                middleName: middleName,
-                phone: phone,
-                comment: comment,
-                fund: 'children-help'
-            },
+            if (!firstName) { alert('Заполните имя.'); document.querySelector('#firstName').focus(); return; }
+            if (!lastName)  { alert('Заполните фамилию.'); document.querySelector('#lastName').focus(); return; }
+            if (!email)     { alert('Заполните E‑mail.'); document.querySelector('#email').focus(); return; }
+            if (!phone)     { alert('Заполните телефон.'); document.querySelector('#phone').focus(); return; }
 
-            userInfo: {
-                firstName: firstName,
-                lastName: lastName,
-                middleName: middleName,
-                fullName: [lastName, firstName, middleName].filter(Boolean).join(' '),
-                email: email,
-                phone: phone,
-                accountId: email   // обязательно для рекуррента
-            }
-        };
+            const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
+            const amount = 500;
 
-        // 5. Если выбран ежемесячный платёж – добавляем recurrent (по документации)
-        if (isMonthly) {
-            intentParams.recurrent = {
-                interval: 'Month',
-                period: 1,
-                amount: amount
+            // Формируем описание с комментарием (для колонки "Описание")
+            const description = 'Пожертвование в фонд' + (comment ? '. Комментарий: ' + comment : '');
+
+            const intentParams = {
+                publicTerminalId: TERMINAL_ID,
+                amount: amount,
+                currency: 'RUB',
+                paymentSchema: 'Single',
+                description: description,          // 1) комментарий в description
+                culture: 'ru-RU',
+                skin: 'modern',
+                successRedirectUrl: SUCCESS_URL,
+                failRedirectUrl: FAIL_URL,
+                receiptEmail: email,
+
+                // 2) комментарий в data (колонка "Данные")
+                data: {
+                    comment: comment,
+                    // остальные поля для информации
+                    lastName: lastName,
+                    firstName: firstName,
+                    middleName: middleName,
+                    phone: phone,
+                    fund: 'children-help'
+                },
+
+                // 3) комментарий в metadata (тоже приходит в уведомлениях)
+                metadata: {
+                    comment: comment
+                },
+
+                userInfo: {
+                    firstName: firstName,
+                    lastName: lastName,
+                    middleName: middleName,
+                    fullName: fullName,
+                    email: email,
+                    phone: phone,
+                    accountId: email
+                }
             };
+
+            if (recurrentCheck.checked) {
+                intentParams.recurrent = {
+                    interval: 'Month',
+                    period: 1,
+                    amount: amount
+                };
+            }
+
+            console.log('Запуск виджета с параметрами:', intentParams);
+
+            widget.oncomplete = function(result) {
+                console.log('Виджет закрыт, результат:', result);
+                if (result && result.status === 'success') {
+                    alert('Спасибо! Платёж успешно проведён.');
+                } else if (result && result.status === 'fail') {
+                    alert('Платёж не удался: ' + (result.message || 'ошибка'));
+                } else if (result && result.type === 'cancel') {
+                    console.log('Платёж отменён пользователем');
+                }
+            };
+
+            widget.start(intentParams)
+                .then(function(widgetResult) {
+                    console.log('Promise успех:', widgetResult);
+                })
+                .catch(function(error) {
+                    console.error('Ошибка при запуске виджета:', error);
+                    alert('Ошибка запуска виджета. Смотрите консоль (F12).');
+                });
         }
 
-        // 6. Обработчик закрытия виджета (oncomplete)
-        widget.oncomplete = function(result) {
-            console.log('Виджет закрыт, результат:', result);
-            if (result && result.status === 'success') {
-                alert('Спасибо! Платёж успешно проведён ❤️');
-            } else if (result && result.status === 'fail') {
-                alert('Платёж не удался: ' + (result.message || 'ошибка'));
-            } else if (result && result.type === 'cancel') {
-                console.log('Платёж отменён пользователем');
-            }
-        };
+        document.querySelector('#checkout').onclick = start;
 
-        // 7. Запуск виджета
-        widget.start(intentParams)
-            .then(function(widgetResult) {
-                console.log('Promise успех:', widgetResult);
-            })
-            .catch(function(error) {
-                console.error('Ошибка при запуске виджета:', error);
-                alert('Ошибка запуска виджета. Проверьте консоль (F12).');
-            });
-    }
+        document.querySelector('#donationForm').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') e.preventDefault();
+        });
+
+    })();
 </script>
 
 </body>
