@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Благотворительный фонд — пожертвование</title>
+
+    <!-- Подключение скрипта виджета (строго по документации) -->
+    <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
+
+    <style>
+        /* Минимальный дизайн (не влияет на функциональность) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 520px;
+            width: 100%;
+            background: #fff;
+            border-radius: 24px;
+            padding: 36px 32px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #0b1a33;
+            margin-bottom: 6px;
+        }
+        .sub {
+            color: #5b6f87;
+            font-size: 14px;
+            margin-bottom: 24px;
+            padding-left: 12px;
+            border-left: 3px solid #2a7de1;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1e2a44;
+            margin-bottom: 4px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fafcff;
+            font-family: inherit;
+            transition: 0.15s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #2a7de1;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(42,125,225,0.1);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0 24px;
+            padding: 10px 16px;
+            background: #f2f6fd;
+            border-radius: 16px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #2a7de1;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #0b1a33;
+            cursor: pointer;
+        }
+        .btn-pay {
+            width: 100%;
+            padding: 14px;
+            background: #2a7de1;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 4px 12px rgba(42,125,225,0.25);
+        }
+        .btn-pay:hover {
+            background: #1e66c2;
+            transform: scale(1.01);
+        }
+        .footnote {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #7b8aa0;
+            text-align: center;
+        }
+        @media (max-width: 480px) {
+            .card { padding: 24px 16px; }
+            .row-2 { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h1>❤️ Пожертвование</h1>
+    <div class="sub">Все средства пойдут на помощь детям</div>
+
+    <!-- Форма сбора данных (email, телефон, ФИО, комментарий) -->
+    <form id="donationForm">
+        <div class="form-group">
+            <label for="fullName">ФИО</label>
+            <input type="text" id="fullName" placeholder="Иванов Иван Иванович" required>
+        </div>
+
+        <div class="row-2">
+            <div class="form-group">
+                <label for="email">E‑mail</label>
+                <input type="email" id="email" placeholder="ivan@mail.ru" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Телефон</label>
+                <input type="tel" id="phone" placeholder="+7 999 123 45 67" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="comment">Комментарий</label>
+            <textarea id="comment" placeholder="Ваше пожелание..."></textarea>
+        </div>
+
+        <!-- Чекбокс «сделать платеж ежемесячным» -->
+        <div class="checkbox-group">
+            <input type="checkbox" id="recurrentCheck">
+            <label for="recurrentCheck">🔁 Сделать платеж ежемесячным</label>
+        </div>
+
+        <!-- Кнопка оплаты с id="checkout" (как в документации) -->
+        <button type="button" class="btn-pay" id="checkout">💳 Оплатить 500 ₽</button>
+
+        <div class="footnote">Безопасный платёж через CloudPayments</div>
+    </form>
+</div>
+
+<script>
+    'use strict';
+
+    // ---------- экземпляр виджета (по второму примеру документации) ----------
+    const widget = new cp.CloudPayments();
+
+    // ---------- функция start (по документации) ----------
+    function start() {
+        // 1. Валидация формы (все поля обязательны, кроме комментария)
+        const fullName = document.querySelector('#fullName').value.trim();
+        const email    = document.querySelector('#email').value.trim();
+        const phone    = document.querySelector('#phone').value.trim();
+        const comment  = document.querySelector('#comment').value.trim();
+
+        if (!fullName) { alert('Заполните ФИО.'); document.querySelector('#fullName').focus(); return; }
+        if (!email)    { alert('Заполните E‑mail.'); document.querySelector('#email').focus(); return; }
+        if (!phone)    { alert('Заполните телефон.'); document.querySelector('#phone').focus(); return; }
+
+        // 2. Формирование параметров (строго по документации)
+        const intentParams = {
+            // Обязательные параметры (из документации)
+            publicTerminalId: 'pk_8f2b672d45ba2887ad7471e4c5a7f', // ваш publicId
+            amount: 500,                                          // сумма
+            currency: 'RUB',                                     // валюта
+            paymentSchema: 'Single',                             // схема (Single / Dual) – обязателен
+
+            // Необязательные, но используемые в примере
+            description: 'Пожертвование в фонд',
+            culture: 'ru-RU',
+            skin: 'modern',
+
+            // Данные плательщика (userInfo) – для отображения в ЛК
+            userInfo: {
+                fullName: fullName,
+                email: email,
+                phone: phone,
+                customField: {
+                    name: 'comment',
+                    value: comment || ''
+                }
+            }
+        };
+
+        // 3. Если чекбокс активен – добавляем рекуррент (по документации)
+        if (document.querySelector('#recurrentCheck').checked) {
+            intentParams.recurrent = {
+                interval: 'Month',   // интервал – месяц
+                period: 1,           // каждые 1 период
+                amount: 500          // сумма регулярного платежа
+            };
+        }
+
+        // 4. Запуск виджета (метод start, возвращает Promise<WidgetResult>)
+        widget.start(intentParams)
+            .then(function(widgetResult) {
+                console.log('Платёж успешен:', widgetResult);
+                alert('Спасибо! Платёж успешно проведён.');
+            })
+            .catch(function(error) {
+                console.warn('Платёж отменён или ошибка:', error);
+                // Не выводим alert, чтобы не раздражать при отмене
+            });
+    }
+
+    // ---------- назначение обработчика (строго по документации, без jQuery) ----------
+    // document.querySelector('#checkout').onclick = start
+    document.querySelector('#checkout').onclick = start;
+
+    // Отключаем отправку формы по Enter
+    document.querySelector('#donationForm').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') e.preventDefault();
+    });
+</script>
+
+</body>
+</html>
