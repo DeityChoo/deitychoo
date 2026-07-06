@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Благотворительный фонд</title>
-
-    <!-- Подключение скрипта виджета CloudPayments -->
+    <title>Благотворительный фонд Грузовичка</title>
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
 
     <style>
@@ -140,10 +138,9 @@
 
 <div class="card">
     <h1>❤️ Пожертвование</h1>
-    <div class="sub">Все средства пойдут на помощь детям</div>
+    <div class="sub">Все средства пойдут на помощь пострадавшим от столкновения с Грузовиком</div>
 
     <form id="donationForm">
-        <!-- Три поля: фамилия, имя, отчество -->
         <div class="row-3">
             <div class="form-group">
                 <label for="lastName">Фамилия</label>
@@ -219,7 +216,7 @@
                 amount: 500,
                 currency: 'RUB',
                 paymentSchema: 'Single',
-                description: 'Пожертвование в фонд' + (comment ? '. Комментарий: ' + comment : ''),
+                description: description, 
                 culture: 'ru-RU',
                 skin: 'modern',
                 successRedirectUrl: SUCCESS_URL,
