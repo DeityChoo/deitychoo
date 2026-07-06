@@ -211,7 +211,7 @@
         // ----- Создаём виджет -----
         const widget = new cp.CloudPayments();
 
-        // ----- Параметры (актуальный метод start) -----
+        // ----- Параметры (только самое необходимое) -----
         const intentParams = {
             publicTerminalId: 'pk_3a0775a4af22d745f53ed7774a73d', // Ваш Public ID
             amount: amount,
@@ -224,7 +224,7 @@
             failRedirectUrl: window.location.href + '?fail',
             receiptEmail: email,
 
-            // ВСЕ ДОПОЛНИТЕЛЬНЫЕ ДАННЫЕ (включая комментарий) – через `data`
+            // ВСЕ ДАННЫЕ (включая комментарий) – только через `data`
             data: {
                 lastName: lastName,
                 firstName: firstName,
@@ -232,21 +232,12 @@
                 phone: phone,
                 comment: comment,          // ← комментарий будет в колонке "Данные"
                 fund: 'children-help'
-            },
-
-            userInfo: {
-                firstName: firstName,
-                lastName: lastName,
-                middleName: middleName,
-                fullName: [lastName, firstName, middleName].filter(Boolean).join(' '),
-                email: email,
-                phone: phone,
-                accountId: email   // обязательно для рекуррента
             }
         };
 
-        // Если выбран ежемесячный платёж – добавляем recurrent (по документации)
+        // Если выбран ежемесячный платёж – добавляем recurrent и accountId
         if (isMonthly) {
+            intentParams.accountId = email;   // обязательно для рекуррента
             intentParams.recurrent = {
                 interval: 'Month',
                 period: 1,
