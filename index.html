@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Благотворительный фонд в честь жертв Грузовичка-сама</title>
+    <title>Благотворительный фонд</title>
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
     <style>
         * {
@@ -160,23 +160,36 @@
 </div>
 <script>
     'use strict';
+
+    if (typeof cp === 'undefined' || typeof cp.CloudPayments === 'undefined') {
+        alert('Ошибка: скрипт CloudPayments не загружен. Проверьте интернет.');
+        throw new Error('CloudPayments not loaded');
+    }
+
     const widget = new cp.CloudPayments();
+
     function start() {
         const fullName = document.querySelector('#fullName').value.trim();
         const email    = document.querySelector('#email').value.trim();
         const phone    = document.querySelector('#phone').value.trim();
         const comment  = document.querySelector('#comment').value.trim();
+
         if (!fullName) { alert('Заполните ФИО.'); document.querySelector('#fullName').focus(); return; }
         if (!email)    { alert('Заполните E‑mail.'); document.querySelector('#email').focus(); return; }
         if (!phone)    { alert('Заполните телефон.'); document.querySelector('#phone').focus(); return; }
+
+        const TERMINAL_ID = 'pk_3a0775a4af22d745f53ed7774a73d';
+
         const intentParams = {
-            publicTerminalId: 'pk_3a0775a4af22d745f53ed7774a73d',
+            publicTerminalId: TERMINAL_ID,
             amount: 500,
             currency: 'RUB',
             paymentSchema: 'Single',
-            description: 'Пожертвование в фонд',
+            description: 'Пожертвование в фонд' + (comment ? '. Комментарий: ' + comment : ''),
             culture: 'ru-RU',
             skin: 'modern',
+            successRedirectUrl: window.location.href + '?payment=success',
+            failRedirectUrl: window.location.href + '?payment=fail',
             userInfo: {
                 fullName: fullName,
                 email: email,
@@ -188,6 +201,7 @@
                 }
             }
         };
+
         if (document.querySelector('#recurrentCheck').checked) {
             intentParams.recurrent = {
                 interval: 'Month',
@@ -195,15 +209,31 @@
                 amount: 500
             };
         }
+
+        console.log('Запуск виджета с параметрами:', intentParams);
+
+        // Обработчик закрытия виджета
+        widget.oncomplete = function(result) {
+            console.log('Виджет закрыт, результат:', result);
+            if (result && result.status === 'success') {
+                alert('Спасибо! Платёж успешно проведён.');
+            } else if (result && result.status === 'fail') {
+                alert('Платёж не удался: ' + (result.message || 'ошибка'));
+            } else if (result && result.type === 'cancel') {
+                console.log('Платёж отменён пользователем');
+            }
+        };
+
         widget.start(intentParams)
             .then(function(widgetResult) {
-                console.log('Платёж успешен:', widgetResult);
-                alert('Спасибо! Платёж успешно проведён.');
+                console.log('Promise успех:', widgetResult);
             })
             .catch(function(error) {
-                console.warn('Платёж отменён или ошибка:', error);
+                console.error('Ошибка при запуске виджета:', error);
+                alert('Ошибка запуска виджета. Смотрите консоль (F12).');
             });
     }
+
     document.querySelector('#checkout').onclick = start;
     document.querySelector('#donationForm').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') e.preventDefault();
