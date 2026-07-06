@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Благотворительный фонд</title>
+    <title>Благотворительный фонд Грузовичок-сан</title>
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
     <style>
         * {
@@ -136,8 +136,8 @@
 <body>
 
 <div class="card">
-    <h1>❤️ Пожертвование</h1>
-    <div class="sub">Все средства пойдут на помощь детям</div>
+    <h1>🚚 Пожертвование</h1>
+    <div class="sub">Все средства пойдут на помощь жертвам беспощадного Грузовичка</div>
 
     <form id="donationForm">
         <div class="row-3">
@@ -202,21 +202,18 @@
         const phone = document.getElementById('phone').value.trim();
         const comment = document.getElementById('comment').value.trim();
 
-        // ----- Формируем описание -----
         const description = isMonthly
             ? `Ежемесячное пожертвование — ${amount} ₽`
             : `Единоразовое пожертвование — ${amount} ₽`;
 
-        // ----- Создаём виджет -----
         const widget = new cp.CloudPayments();
 
-        // ----- Параметры (как в рабочем примере «Три Кота») -----
         const options = {
-            publicId: 'pk_3a0775a4af22d745f53ed7774a73d', // Ваш Public ID
+            publicId: 'pk_3a0775a4af22d745f53ed7774a73d', 
             description: description,
             amount: amount,
             currency: 'RUB',
-            invoiceId: 'FOND-123', // можно заменить на что-то уникальное
+            invoiceId: 'GRUZ-1', 
             email: email,
             skin: "modern",
             data: {
@@ -225,7 +222,7 @@
                 middleName: middleName,
                 phone: phone,
                 comment: comment,       
-                fund: 'children-help'
+                fund: 'gruz-help'
             }
         };
 
@@ -237,7 +234,7 @@
         }
         widget.pay('charge', options, {
             onSuccess: function () {
-                alert("Спасибо! Пожертвование прошло успешно ❤️");
+                alert("Благодарим! Пожертвование прошло успешно");
             },
             onFail: function () {
                 alert("Виджет с оплатой был закрыт. Пожалуйста, повторите попытку ещё раз.");
