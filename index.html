@@ -210,25 +210,20 @@
 
             const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
 
-            // Формируем описание с комментарием
-            let description = 'Пожертвование в фонд';
-            if (comment) {
-                description += '. Комментарий: ' + comment;
-            }
-
+            // Базовые параметры виджета
             const intentParams = {
                 publicTerminalId: TERMINAL_ID,
                 amount: 500,
                 currency: 'RUB',
                 paymentSchema: 'Single',
-                description: description,
+                description: 'Пожертвование в фонд', // Краткое описание
                 culture: 'ru-RU',
                 skin: 'modern',
                 successRedirectUrl: SUCCESS_URL,
                 failRedirectUrl: FAIL_URL,
-                receiptEmail: email,                     // для поля Email в выгрузке
+                receiptEmail: email,
                 metadata: {
-                    comment: comment || ''               // дополнительно, если потребуется
+                    userComment: comment || '' // <-- Комментарий пользователя
                 },
                 userInfo: {
                     firstName: firstName,
