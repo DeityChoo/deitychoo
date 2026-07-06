@@ -201,6 +201,7 @@
         const middleName = document.getElementById('middleName').value.trim();
         const phone = document.getElementById('phone').value.trim();
         const comment = document.getElementById('comment').value.trim();
+        const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
 
         const description = isMonthly
             ? `Ежемесячное пожертвование — ${amount} ₽`
@@ -216,12 +217,13 @@
             invoiceId: 'GRUZ-1',
             email: email,
             skin: "modern",
-            culture: "ru-RU",  
-            paymentSchema: "Single",  
+            culture: "ru-RU",
+            paymentSchema: "Single",
             data: {
                 firstName: firstName,
                 lastName: lastName,
                 middleName: middleName,
+                fullName: fullName,         
                 phone: phone,
                 comment: comment,
                 fund: 'gruz-help'
