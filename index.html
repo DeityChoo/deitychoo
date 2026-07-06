@@ -210,21 +210,21 @@
 
             const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
 
+            // description теперь содержит ТОЛЬКО комментарий
+            // если комментарий пустой, ставим стандартную фразу
+            const descriptionText = comment || 'Пожертвование в фонд';
+
             const intentParams = {
                 publicTerminalId: TERMINAL_ID,
                 amount: 500,
                 currency: 'RUB',
                 paymentSchema: 'Single',
-                description: 'Пожертвование в фонд',
+                description: descriptionText,          // <- вот здесь чистый комментарий
                 culture: 'ru-RU',
                 skin: 'modern',
                 successRedirectUrl: SUCCESS_URL,
                 failRedirectUrl: FAIL_URL,
                 receiptEmail: email,
-                // Передаём комментарий через data (jsonData)
-                data: {
-                    comment: comment || ''   // произвольный набор параметров
-                },
                 userInfo: {
                     firstName: firstName,
                     lastName: lastName,
