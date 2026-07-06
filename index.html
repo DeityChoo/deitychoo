@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Фонд «Три Кота»</title>
+    <title>Пожертвование детям</title>
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
     <style>
         body {
@@ -39,15 +39,15 @@
 </head>
 <body>
     <div class="container">
-        <img src="cats.jpg" alt="Котики">
-        <h2 style="text-align:center;">Пожертвование в фонд «Три Кота»</h2>
+        <img src="cats.jpg" alt="Дети и котики">
+        <h2 style="text-align:center;">Пожертвование в фонд помощи детям</h2>
         <form id="donationForm">
             <input type="text" id="lastName" placeholder="Фамилия" required>
             <input type="text" id="firstName" placeholder="Имя" required>
             <input type="text" id="middleName" placeholder="Отчество">
             <input type="email" id="email" placeholder="Email" required>
             <input type="tel" id="phone" placeholder="Телефон (формат 89999999999)" required>
-            <input type="number" id="amount" value="444" min="100" placeholder="Сумма (₽)" required>
+            <input type="number" id="amount" value="500" min="100" placeholder="Сумма (₽)" required>
             <textarea id="comment" rows="3" placeholder="Комментарий (необязательно)"></textarea>
             <label>
                 <input type="checkbox" id="monthlyCheck" checked> Сделать ежемесячным
@@ -78,9 +78,8 @@
 
             const widget = new cp.CloudPayments();
 
-            // Параметры виджета (актуальный метод start)
             const intentParams = {
-                publicTerminalId: 'pk_774378acb9906498bfe828d52a0c9', // Ваш Public ID
+                publicTerminalId: 'pk_3a0775a4af22d745f53ed7774a73d', // Ваш Public ID
                 amount: amount,
                 currency: 'RUB',
                 paymentSchema: 'Single',
@@ -91,16 +90,17 @@
                 failRedirectUrl: window.location.href + '?fail',
                 receiptEmail: email,
 
-                // !!! КЛЮЧЕВОЙ МОМЕНТ: все пользовательские данные, включая комментарий,
-                // передаём через поле data – именно так, как в вашем рабочем примере.
-                // Это поле гарантированно попадает в выгрузку ЛК в колонку «Данные».
+                // --------------------------------------------------------------
+                // КЛЮЧЕВОЙ МОМЕНТ: передача комментария через поле `data`
+                // Это гарантирует его появление в выгрузке ЛК в колонке «Данные»
+                // --------------------------------------------------------------
                 data: {
                     lastName: lastName,
                     firstName: firstName,
                     middleName: middleName,
                     phone: phone,
                     comment: comment,        // <- комментарий будет виден в выгрузке
-                    fund: 'tri-kota'
+                    fund: 'children-help'
                 },
 
                 userInfo: {
@@ -110,11 +110,10 @@
                     fullName: [lastName, firstName, middleName].filter(Boolean).join(' '),
                     email: email,
                     phone: phone,
-                    accountId: email   // обязательно для рекуррента
+                    accountId: email
                 }
             };
 
-            // Если выбран ежемесячный платёж – добавляем рекуррент (по документации)
             if (isMonthly) {
                 intentParams.recurrent = {
                     interval: 'Month',
@@ -123,7 +122,6 @@
                 };
             }
 
-            // Обработчик закрытия виджета
             widget.oncomplete = function(result) {
                 console.log('Виджет закрыт, результат:', result);
                 if (result && result.status === 'success') {
@@ -135,7 +133,6 @@
                 }
             };
 
-            // Запуск виджета
             widget.start(intentParams)
                 .then(function(widgetResult) {
                     console.log('Promise успех:', widgetResult);
