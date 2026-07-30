@@ -209,6 +209,7 @@
 
         const widget = new cp.CloudPayments();
 
+        // Базовые опции
         const options = {
             publicId: 'pk_3a0775a4af22d745f53ed7774a73d',
             description: description,
@@ -219,6 +220,8 @@
             skin: "modern",
             culture: "ru-RU",
             paymentSchema: "Single",
+            // Все пользовательские данные передаём в data (JsonData)
+            // Они будут отображаться в выгрузке ЛК в зарезервированных полях
             data: {
                 firstName: firstName,
                 lastName: lastName,
@@ -230,52 +233,58 @@
             }
         };
 
-        // Общий объект чека
-        const receiptData = {
-            items: [
-                {
-                    label: 'Пожертвование',
-                    price: amount,
-                    quantity: 1,
-                    amount: amount,
-                    vat: 0,
-                    method: 0,
-                    object: 0
-                }
-            ],
-            taxationSystem: 0,
-            email: email,
-            phone: phone,
-            isBso: false
-        };
+        // Общий объект чека (используется и для разового, и для регулярного)
+        const receiptItems = [
+            {
+                label: 'Пожертвование',
+                price: amount,
+                quantity: 1,
+                amount: amount,
+                vat: 0,
+                method: 0,
+                object: 0
+            }
+        ];
 
         // === РАЗОВЫЙ ПЛАТЁЖ: чек на верхнем уровне ===
         if (!isMonthly) {
-            options.receipt = receiptData;
+            options.receipt = {
+                items: receiptItems,
+                taxationSystem: 0,
+                email: email,
+                phone: phone,
+                isBso: false
+            };
         } 
-        // === РЕГУЛЯРНЫЙ ПЛАТЁЖ: чек внутри data.cloudPayments.customerReceipt ===
+        // === РЕГУЛЯРНЫЙ ПЛАТЁЖ: чек и подписка внутри data.cloudPayments ===
         else {
             options.accountId = email;
-            // Инициализируем cloudPayments, если его нет
+
+            // Инициализируем cloudPayments внутри data
             if (!options.data.cloudPayments) {
                 options.data.cloudPayments = {};
             }
-            // Рекуррентные настройки
+
+            // Настройки подписки
             options.data.cloudPayments.recurrent = {
                 interval: 'Month',
                 period: 1
             };
-            // Чек для регулярных платежей (customerReceipt)
+
+            // ЧЕК ДЛЯ РЕГУЛЯРНЫХ ПЛАТЕЖЕЙ (customerReceipt)
+            // Этот шаблон будет использоваться при каждом автоматическом списании
             options.data.cloudPayments.customerReceipt = {
-                Items: receiptData.items,
-                taxationSystem: receiptData.taxationSystem,
-                email: receiptData.email,
-                phone: receiptData.phone
+                Items: receiptItems,          // Обратите внимание: Items с большой буквы
+                taxationSystem: 0,
+                email: email,
+                phone: phone
             };
+
             // Удаляем верхний receipt, если он был (для чистоты)
             delete options.receipt;
         }
 
+        // Запускаем платёж
         widget.pay('charge', options, {
             onSuccess: function () {
                 alert("Благодарим! Платёж успешно проведён.");
