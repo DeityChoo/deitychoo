@@ -230,16 +230,12 @@
             }
         };
 
-        // ----------------------------------------------
-        // ДОБАВЛЯЕМ ЧЕКИ (каждый сам по себе, без общих переменных)
-        // ----------------------------------------------
 
         if (isMonthly) {
-            // РЕГУЛЯРНЫЙ ПЛАТЁЖ
             options.accountId = email;
             options.data.cloudPayments = {
                 recurrent: { interval: 'Month', period: 1 },
-                receipt: {
+                customerReceipt: {
                     Items: [
                         {
                             label: 'Пожертвование',
@@ -257,7 +253,6 @@
                 }
             };
         } else {
-            // РАЗОВЫЙ ПЛАТЁЖ
             options.receipt = {
                 items: [
                     {
@@ -276,9 +271,6 @@
                 isBso: false
             };
         }
-
-        // ----------------------------------------------
-
         widget.pay('charge', options, {
             onSuccess: function () {
                 alert("Благодарим! Платёж успешно проведён.");
