@@ -178,10 +178,10 @@
 
         <div class="checkbox-group">
             <input type="checkbox" id="recurrentCheck">
-            <label for="recurrentCheck">🔁 Сделать платеж ежемесячным</label>
+            <label for="recurrentCheck">🔁 Сделать ежемесячным</label>
         </div>
 
-        <button type="button" class="btn-pay" onclick="startPayment()">💳 Оплатить</button>
+        <button type="button" class="btn-pay" onclick="startPayment()">💳 Пожертвовать</button>
         <div class="footnote">Безопасный платёж через CloudPayments</div>
     </form>
 </div>
@@ -203,30 +203,15 @@
         const comment = document.getElementById('comment').value.trim();
         const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
 
-        // === Простой чек ===
-        const receiptData = {
-            items: [
-                {
-                    label: 'Пожертвование',
-                    price: amount,
-                    quantity: 1,
-                    amount: amount,
-                    vat: 0
-                }
-            ],
-            taxationSystem: 0,
-            email: email,
-            phone: phone
-        };
+        const description = isMonthly
+            ? `Ежемесячное пожертвование — ${amount} ₽`
+            : `Единоразовое пожертвование — ${amount} ₽`;
 
         const widget = new cp.CloudPayments();
 
-        // === Базовые опции ===
         const options = {
             publicId: 'pk_3a0775a4af22d745f53ed7774a73d',
-            description: isMonthly
-                ? `Ежемесячное пожертвование — ${amount} ₽`
-                : `Единоразовое пожертвование — ${amount} ₽`,
+            description: description,
             amount: amount,
             currency: 'RUB',
             invoiceId: 'GRUZ-1',
@@ -238,30 +223,18 @@
                 firstName: firstName,
                 lastName: lastName,
                 middleName: middleName,
-                fullName: fullName,
+                fullName: fullName,         
                 phone: phone,
                 comment: comment,
                 fund: 'gruz-help'
             }
         };
 
-        // === РАЗОВЫЙ ПЛАТЁЖ: чек на верхнем уровне ===
-        if (!isMonthly) {
-            options.receipt = receiptData;
-        } 
-        // === РЕГУЛЯРНЫЙ ПЛАТЁЖ: recurrent внутри data.cloudPayments ===
-        else {
+        if (isMonthly) {
             options.accountId = email;
-            // ВАЖНО: recurrent передаём через data.cloudPayments
             options.data.cloudPayments = {
-                recurrent: {
-                    interval: 'Month',
-                    period: 1,
-                    customerReceipt: receiptData   // чек для каждого списания
-                }
+                recurrent: { interval: 'Month', period: 1 }
             };
-            // Удаляем возможный верхний recurrent, если он был (для чистоты)
-            delete options.recurrent;
         }
 
         widget.pay('charge', options, {
