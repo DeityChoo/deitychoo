@@ -178,10 +178,10 @@
 
         <div class="checkbox-group">
             <input type="checkbox" id="recurrentCheck">
-            <label for="recurrentCheck">🔁 Сделать ежемесячным</label>
+            <label for="recurrentCheck">🔁 Сделать платеж ежемесячным</label>
         </div>
 
-        <button type="button" class="btn-pay" onclick="startPayment()">💳 Пожертвовать</button>
+        <button type="button" class="btn-pay" onclick="startPayment()">💳 Оплатить</button>
         <div class="footnote">Безопасный платёж через CloudPayments</div>
     </form>
 </div>
@@ -203,15 +203,28 @@
         const comment = document.getElementById('comment').value.trim();
         const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
 
-        const description = isMonthly
-            ? `Ежемесячное пожертвование — ${amount} ₽`
-            : `Единоразовое пожертвование — ${amount} ₽`;
+        const receiptData = {
+            items: [
+                {
+                    label: 'Пожертвование',
+                    price: amount,
+                    quantity: 1,
+                    amount: amount,
+                    vat: 0
+                }
+            ],
+            taxationSystem: 0,
+            email: email,
+            phone: phone
+        };
 
         const widget = new cp.CloudPayments();
 
         const options = {
             publicId: 'pk_3a0775a4af22d745f53ed7774a73d',
-            description: description,
+            description: isMonthly
+                ? `Ежемесячное пожертвование — ${amount} ₽`
+                : `Единоразовое пожертвование — ${amount} ₽`,
             amount: amount,
             currency: 'RUB',
             invoiceId: 'GRUZ-1',
@@ -223,36 +236,22 @@
                 firstName: firstName,
                 lastName: lastName,
                 middleName: middleName,
-                fullName: fullName,         
+                fullName: fullName,
                 phone: phone,
                 comment: comment,
                 fund: 'gruz-help'
             }
         };
-         receipt: {
-                items: [
-                    {
-                        label: 'Пожертвование',
-                        price: amount,
-                        quantity: 1,
-                        amount: amount,
-                        vat: 0,        
-                        method: 0,      
-                        object: 0     
-                    }
-                ],
-                taxationSystem: 0,      
-                email: email,            
-                phone: phone,        
-                isBso: false
-            }
-        };
 
         if (isMonthly) {
             options.accountId = email;
-            options.data.cloudPayments = {
-                recurrent: { interval: 'Month', period: 1 }
+            options.recurrent = {
+                interval: 'Month',
+                period: 1,
+                customerReceipt: receiptData  
             };
+        } else {
+            options.receipt = receiptData;
         }
 
         widget.pay('charge', options, {
