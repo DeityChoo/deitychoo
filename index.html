@@ -203,6 +203,7 @@
         const comment = document.getElementById('comment').value.trim();
         const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
 
+        // === Простой чек ===
         const receiptData = {
             items: [
                 {
@@ -220,6 +221,7 @@
 
         const widget = new cp.CloudPayments();
 
+        // === Базовые опции ===
         const options = {
             publicId: 'pk_3a0775a4af22d745f53ed7774a73d',
             description: isMonthly
@@ -243,15 +245,23 @@
             }
         };
 
-        if (isMonthly) {
-            options.accountId = email;
-            options.recurrent = {
-                interval: 'Month',
-                period: 1,
-                customerReceipt: receiptData  
-            };
-        } else {
+        // === РАЗОВЫЙ ПЛАТЁЖ: чек на верхнем уровне ===
+        if (!isMonthly) {
             options.receipt = receiptData;
+        } 
+        // === РЕГУЛЯРНЫЙ ПЛАТЁЖ: recurrent внутри data.cloudPayments ===
+        else {
+            options.accountId = email;
+            // ВАЖНО: recurrent передаём через data.cloudPayments
+            options.data.cloudPayments = {
+                recurrent: {
+                    interval: 'Month',
+                    period: 1,
+                    customerReceipt: receiptData   // чек для каждого списания
+                }
+            };
+            // Удаляем возможный верхний recurrent, если он был (для чистоты)
+            delete options.recurrent;
         }
 
         widget.pay('charge', options, {
