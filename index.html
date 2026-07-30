@@ -229,6 +229,26 @@
                 fund: 'gruz-help'
             }
         };
+        json_data = {
+            'cloudPayments': {
+                'customerReceipt': {
+                items: [
+                    {
+                        label: 'Пожертвование',
+                        price: amount,
+                        quantity: 1,
+                        amount: amount,
+                        vat: 0,        
+                        method: 0,      
+                        object: 0     
+                    }
+                ],
+                taxationSystem: 0,      
+                email: email,            
+                phone: phone,        
+                isBso: false
+            }
+        }};
 
         if (isMonthly) {
             options.accountId = email;
