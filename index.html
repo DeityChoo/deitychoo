@@ -234,7 +234,8 @@
         if (isMonthly) {
             options.accountId = email;
             options.data.cloudPayments = {
-                recurrent: { interval: 'Month', period: 1 },
+                recurrent: { interval: 'Month',
+                            period: 1,
                 customerReceipt: {
                     Items: [
                         {
