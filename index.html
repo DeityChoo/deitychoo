@@ -178,10 +178,10 @@
 
         <div class="checkbox-group">
             <input type="checkbox" id="recurrentCheck">
-            <label for="recurrentCheck">🔁 Сделать платеж ежемесячным</label>
+            <label for="recurrentCheck">🔁 Сделать ежемесячным</label>
         </div>
 
-        <button type="button" class="btn-pay" onclick="startPayment()">💳 Оплатить</button>
+        <button type="button" class="btn-pay" onclick="startPayment()">💳 Пожертвовать</button>
         <div class="footnote">Безопасный платёж через CloudPayments</div>
     </form>
 </div>
@@ -201,15 +201,14 @@
         const middleName = document.getElementById('middleName').value.trim();
         const phone = document.getElementById('phone').value.trim();
         const comment = document.getElementById('comment').value.trim();
-
         const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
+
         const description = isMonthly
             ? `Ежемесячное пожертвование — ${amount} ₽`
             : `Единоразовое пожертвование — ${amount} ₽`;
 
         const widget = new cp.CloudPayments();
 
-        // Базовые опции (общие для разового и регулярного)
         const options = {
             publicId: 'pk_3a0775a4af22d745f53ed7774a73d',
             description: description,
@@ -231,27 +230,30 @@
             }
         };
 
+        // Общий объект чека
+        const receiptData = {
+            items: [
+                {
+                    label: 'Пожертвование',
+                    price: amount,
+                    quantity: 1,
+                    amount: amount,
+                    vat: 0,
+                    method: 0,
+                    object: 0
+                }
+            ],
+            taxationSystem: 0,
+            email: email,
+            phone: phone,
+            isBso: false
+        };
+
         // === РАЗОВЫЙ ПЛАТЁЖ: чек на верхнем уровне ===
         if (!isMonthly) {
-            options.receipt = {
-                items: [
-                    {
-                        label: 'Пожертвование',
-                        price: amount,
-                        quantity: 1,
-                        amount: amount,
-                        vat: 0,
-                        method: 0,
-                        object: 0
-                    }
-                ],
-                taxationSystem: 0,
-                email: email,
-                phone: phone,
-                isBso: false
-            };
+            options.receipt = receiptData;
         } 
-        // === РЕГУЛЯРНЫЙ ПЛАТЁЖ: чек и recurrent внутри data.cloudPayments ===
+        // === РЕГУЛЯРНЫЙ ПЛАТЁЖ: чек внутри data.cloudPayments.customerReceipt ===
         else {
             options.accountId = email;
             // Инициализируем cloudPayments, если его нет
@@ -265,20 +267,10 @@
             };
             // Чек для регулярных платежей (customerReceipt)
             options.data.cloudPayments.customerReceipt = {
-                Items: [
-                    {
-                        label: 'Пожертвование',
-                        price: amount,
-                        quantity: 1,
-                        amount: amount,
-                        vat: 0,
-                        method: 0,
-                        object: 0
-                    }
-                ],
-                taxationSystem: 0,
-                email: email,
-                phone: phone
+                Items: receiptData.items,
+                taxationSystem: receiptData.taxationSystem,
+                email: receiptData.email,
+                phone: receiptData.phone
             };
             // Удаляем верхний receipt, если он был (для чистоты)
             delete options.receipt;
