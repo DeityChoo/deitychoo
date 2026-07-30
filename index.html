@@ -6,6 +6,7 @@
     <title>Благотворительный фонд Грузовичок-сан</title>
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
     <style>
+        /* Стили без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -209,6 +210,7 @@
 
         const widget = new cp.CloudPayments();
 
+        // Базовые опции
         const options = {
             publicId: 'pk_3a0775a4af22d745f53ed7774a73d',
             description: description,
@@ -223,36 +225,68 @@
                 firstName: firstName,
                 lastName: lastName,
                 middleName: middleName,
-                fullName: fullName,         
+                fullName: fullName,
                 phone: phone,
                 comment: comment,
                 fund: 'gruz-help'
             }
         };
-receipt: {
+
+        // === РАЗОВЫЙ ПЛАТЁЖ: чек на верхнем уровне ===
+        if (!isMonthly) {
+            options.receipt = {
                 items: [
                     {
                         label: 'Пожертвование',
                         price: amount,
                         quantity: 1,
                         amount: amount,
-                        vat: 0,          // без НДС
-                        method: 0,        // полная оплата
-                        object: 0         // товар
+                        vat: 0,
+                        method: 0,
+                        object: 0
                     }
                 ],
-                taxationSystem: 0,       // общая система налогообложения
-                email: email,            // для отправки чека на email
-                phone: phone,            // для отправки чека по SMS
+                taxationSystem: 0,
+                email: email,
+                phone: phone,
                 isBso: false
-            }
-        };
-
-        if (isMonthly) {
-            options.accountId = email;
-            options.data.cloudPayments = {
-                recurrent: { interval: 'Month', period: 1 }
             };
+        } 
+        // === РЕГУЛЯРНЫЙ ПЛАТЁЖ: чек и recurrent через json_data ===
+        else {
+            options.accountId = email;
+
+            // Формируем json_data строго по вашему примеру
+            var json_data = {
+                cloudPayments: {
+                    recurrent: {
+                        interval: 'Month',
+                        period: 1
+                    },
+                    customerReceipt: {
+                        Items: [
+                            {
+                                label: 'Пожертвование',
+                                price: amount,
+                                quantity: 1,
+                                amount: amount,
+                                vat: 0,
+                                method: 0,
+                                object: 0
+                            }
+                        ],
+                        taxationSystem: 0,
+                        email: email,
+                        phone: phone
+                    }
+                }
+            };
+
+            // Объединяем с существующими данными (сохраняем все поля)
+            options.data = Object.assign({}, options.data, json_data);
+
+            // Удаляем верхний receipt, чтобы не дублировать
+            delete options.receipt;
         }
 
         widget.pay('charge', options, {
@@ -263,7 +297,7 @@ receipt: {
                 alert("Платёж отменён или произошла ошибка.");
             }
         });
-    
+    }
 </script>
 
 </body>
