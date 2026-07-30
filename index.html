@@ -209,25 +209,6 @@
 
         const widget = new cp.CloudPayments();
 
-        // --- Формируем данные для чека (одни и те же для обоих типов платежа) ---
-        const receiptData = {
-            Items: [
-                {
-                    label: 'Пожертвование',
-                    price: amount,
-                    quantity: 1,
-                    amount: amount,
-                    vat: 0,
-                    method: 0,
-                    object: 0
-                }
-            ],
-            taxationSystem: 0,
-            email: email,
-            phone: phone
-        };
-
-        // --- Базовые параметры виджета ---
         const options = {
             publicId: 'pk_3a0775a4af22d745f53ed7774a73d',
             description: description,
@@ -249,19 +230,54 @@
             }
         };
 
-        // --- Добавляем чек в зависимости от типа платежа ---
+        // ----------------------------------------------
+        // ДОБАВЛЯЕМ ЧЕКИ (каждый сам по себе, без общих переменных)
+        // ----------------------------------------------
+
         if (isMonthly) {
-            // Регулярный платёж: чек добавляем в параметр recurrent.receipt
+            // РЕГУЛЯРНЫЙ ПЛАТЁЖ
             options.accountId = email;
-            options.recurrent = {
-                interval: 'Month',
-                period: 1,
-                receipt: receiptData // чек для регулярного платежа
+            options.data.cloudPayments = {
+                recurrent: { interval: 'Month', period: 1 },
+                customerReceipt: {
+                    Items: [
+                        {
+                            label: 'Пожертвование',
+                            price: amount,
+                            quantity: 1,
+                            amount: amount,
+                            vat: 0,
+                            method: 0,
+                            object: 0
+                        }
+                    ],
+                    taxationSystem: 0,
+                    email: email,
+                    phone: phone
+                }
             };
         } else {
-            // Одноразовый платёж: чек добавляем на верхний уровень
-            options.receipt = receiptData;
+            // РАЗОВЫЙ ПЛАТЁЖ
+            options.receipt = {
+                items: [
+                    {
+                        label: 'Пожертвование',
+                        price: amount,
+                        quantity: 1,
+                        amount: amount,
+                        vat: 0,
+                        method: 0,
+                        object: 0
+                    }
+                ],
+                taxationSystem: 0,
+                email: email,
+                phone: phone,
+                isBso: false
+            };
         }
+
+        // ----------------------------------------------
 
         widget.pay('charge', options, {
             onSuccess: function () {
