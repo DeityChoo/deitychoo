@@ -209,6 +209,7 @@
 
         const widget = new cp.CloudPayments();
 
+        // Базовые опции (общие для разового и регулярного)
         const options = {
             publicId: 'pk_3a0775a4af22d745f53ed7774a73d',
             description: description,
@@ -227,27 +228,60 @@
                 phone: phone,
                 comment: comment,
                 fund: 'gruz-help'
-            },
-Receipt = {
-        Items: [ 
-            {
-                label: "Пожертвование", 
-                price: 100, 
-                quantity: 1, 
-                amount: 1000, 
-                vat: 0, 
-            },
-        ],
-        amounts : {
-            electronic: 100
-        }
-    };
+            }
+        };
 
-        if (isMonthly) {
-            options.accountId = email;
-            options.data.cloudPayments = {
-                recurrent: { interval: 'Month', period: 1 }
+        // === РАЗОВЫЙ ПЛАТЁЖ: чек на верхнем уровне ===
+        if (!isMonthly) {
+            options.receipt = {
+                items: [
+                    {
+                        label: 'Пожертвование',
+                        price: amount,
+                        quantity: 1,
+                        amount: amount,
+                        vat: 0,
+                        method: 0,
+                        object: 0
+                    }
+                ],
+                taxationSystem: 0,
+                email: email,
+                phone: phone,
+                isBso: false
             };
+        } 
+        // === РЕГУЛЯРНЫЙ ПЛАТЁЖ: чек и recurrent внутри data.cloudPayments ===
+        else {
+            options.accountId = email;
+            // Инициализируем cloudPayments, если его нет
+            if (!options.data.cloudPayments) {
+                options.data.cloudPayments = {};
+            }
+            // Рекуррентные настройки
+            options.data.cloudPayments.recurrent = {
+                interval: 'Month',
+                period: 1
+            };
+            // Чек для регулярных платежей (customerReceipt)
+            options.data.cloudPayments.customerReceipt = {
+                Items: [
+                    {
+                        label: 'Пожертвование',
+                        price: amount,
+                        quantity: 1,
+                        amount: amount,
+                        vat: 0,
+                        method: 0,
+                        object: 0
+                    }
+                ],
+                taxationSystem: 0,
+                email: email,
+                phone: phone
+            };
+            // Удаляем верхний receipt, если он был (для чистоты)
+            delete options.receipt;
         }
 
         widget.pay('charge', options, {
