@@ -178,10 +178,10 @@
 
         <div class="checkbox-group">
             <input type="checkbox" id="recurrentCheck">
-            <label for="recurrentCheck">🔁 Сделать ежемесячным</label>
+            <label for="recurrentCheck">🔁 Сделать платеж ежемесячным</label>
         </div>
 
-        <button type="button" class="btn-pay" onclick="startPayment()">💳 Пожертвовать</button>
+        <button type="button" class="btn-pay" onclick="startPayment()">💳 Оплатить</button>
         <div class="footnote">Безопасный платёж через CloudPayments</div>
     </form>
 </div>
@@ -201,8 +201,8 @@
         const middleName = document.getElementById('middleName').value.trim();
         const phone = document.getElementById('phone').value.trim();
         const comment = document.getElementById('comment').value.trim();
-        const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
 
+        const fullName = [lastName, firstName, middleName].filter(Boolean).join(' ');
         const description = isMonthly
             ? `Ежемесячное пожертвование — ${amount} ₽`
             : `Единоразовое пожертвование — ${amount} ₽`;
@@ -223,27 +223,29 @@
                 firstName: firstName,
                 lastName: lastName,
                 middleName: middleName,
-                fullName: fullName,         
+                fullName: fullName,
                 phone: phone,
                 comment: comment,
                 fund: 'gruz-help'
-            }
-        };
-     receipt: {
+            },
+            // ------------------------------
+            // ДОБАВЛЯЕМ ЧЕК (receipt)
+            // ------------------------------
+            receipt: {
                 items: [
                     {
                         label: 'Пожертвование',
                         price: amount,
                         quantity: 1,
                         amount: amount,
-                        vat: 0,        
-                        method: 0,      
-                        object: 0     
+                        vat: 0,          // без НДС
+                        method: 0,        // полная оплата
+                        object: 0         // товар
                     }
                 ],
-                taxationSystem: 0,      
-                email: email,            
-                phone: phone,        
+                taxationSystem: 0,       // общая система налогообложения
+                email: email,            // для отправки чека на email
+                phone: phone,            // для отправки чека по SMS
                 isBso: false
             }
         };
