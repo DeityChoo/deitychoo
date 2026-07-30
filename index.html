@@ -231,11 +231,30 @@
         };
 
 
-        if (isMonthly) {
+  if (isMonthly) {
             options.accountId = email;
             options.data.cloudPayments = {
-                recurrent: { interval: 'Month',
-                            period: 1,
+                recurrent: { 
+                    interval: 'Month', 
+                    period: 1 
+                    customerReceipt: {
+                    Items: [
+                        {
+                            label: 'Пожертвование',
+                            price: amount,
+                            quantity: 1,
+                            amount: amount,
+                            vat: 0,
+                            method: 0,
+                            object: 0
+                        }
+                    ],
+                    taxationSystem: 0,
+                    email: email,
+                    phone: phone
+                                    }
+                        
+                                },
                 customerReceipt: {
                     Items: [
                         {
