@@ -230,13 +230,37 @@
             }
         };
 
-        // === ИСПРАВЛЕННАЯ ЧАСТЬ (добавлена запятая и убрана лишняя скобка) ===
-        if (isMonthly) {
+        // ======================================================================
+        //  ИСПРАВЛЕНИЕ: для разовых платежей чек передаём через data.cloudPayments.customerReceipt
+        //  (как в официальном примере CloudPayments)
+        // ======================================================================
+        if (!isMonthly) {
+            // РАЗОВЫЙ ПЛАТЁЖ
+            options.data.cloudPayments = {
+                customerReceipt: {
+                    Items: [
+                        {
+                            label: 'Пожертвование',
+                            price: amount,
+                            quantity: 1,
+                            amount: amount,
+                            vat: 0,
+                            method: 0,
+                            object: 0
+                        }
+                    ],
+                    taxationSystem: 0,
+                    email: email,
+                    phone: phone
+                }
+            };
+        } else {
+            // РЕГУЛЯРНЫЙ ПЛАТЁЖ (ваш рабочий код, без изменений)
             options.accountId = email;
             options.data.cloudPayments = {
                 recurrent: {
                     interval: 'Month',
-                    period: 1,                            // ← запятая добавлена
+                    period: 1,
                     customerReceipt: {
                         Items: [
                             {
@@ -270,24 +294,6 @@
                     email: email,
                     phone: phone
                 }
-            };
-        } else {
-            options.receipt = {
-                items: [
-                    {
-                        label: 'Пожертвование',
-                        price: amount,
-                        quantity: 1,
-                        amount: amount,
-                        vat: 0,
-                        method: 0,
-                        object: 0
-                    }
-                ],
-                taxationSystem: 0,
-                email: email,
-                phone: phone,
-                isBso: false
             };
         }
 
