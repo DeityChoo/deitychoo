@@ -229,6 +229,24 @@
                 fund: 'gruz-help'
             }
         };
+receipt: {
+                items: [
+                    {
+                        label: 'Пожертвование',
+                        price: amount,
+                        quantity: 1,
+                        amount: amount,
+                        vat: 0,          // без НДС
+                        method: 0,        // полная оплата
+                        object: 0         // товар
+                    }
+                ],
+                taxationSystem: 0,       // общая система налогообложения
+                email: email,            // для отправки чека на email
+                phone: phone,            // для отправки чека по SMS
+                isBso: false
+            }
+        };
 
         if (isMonthly) {
             options.accountId = email;
@@ -245,7 +263,7 @@
                 alert("Платёж отменён или произошла ошибка.");
             }
         });
-    }
+    
 </script>
 
 </body>
