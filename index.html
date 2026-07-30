@@ -209,6 +209,25 @@
 
         const widget = new cp.CloudPayments();
 
+        // --- Формируем данные для чека (одни и те же для обоих типов платежа) ---
+        const receiptData = {
+            Items: [
+                {
+                    label: 'Пожертвование',
+                    price: amount,
+                    quantity: 1,
+                    amount: amount,
+                    vat: 0,
+                    method: 0,
+                    object: 0
+                }
+            ],
+            taxationSystem: 0,
+            email: email,
+            phone: phone
+        };
+
+        // --- Базовые параметры виджета ---
         const options = {
             publicId: 'pk_3a0775a4af22d745f53ed7774a73d',
             description: description,
@@ -218,10 +237,8 @@
             email: email,
             skin: "modern",
             culture: "ru-RU",
-            paymentSchema: "Single"
-        };
-        if (!isMonthly) {
-            options.data = {
+            paymentSchema: "Single",
+            data: {
                 firstName: firstName,
                 lastName: lastName,
                 middleName: middleName,
@@ -229,61 +246,21 @@
                 phone: phone,
                 comment: comment,
                 fund: 'gruz-help'
-            };
+            }
+        };
 
-            options.receipt = {
-                items: [
-                    {
-                        label: 'Пожертвование',
-                        price: amount,
-                        quantity: 1,
-                        amount: amount,
-                        vat: 0,
-                        method: 0,
-                        object: 0
-                    }
-                ],
-                taxationSystem: 0,
-                email: email,
-                phone: phone,
-                isBso: false
-            };
-        } 
-        else {
+        // --- Добавляем чек в зависимости от типа платежа ---
+        if (isMonthly) {
+            // Регулярный платёж: чек добавляем в параметр recurrent.receipt
             options.accountId = email;
-            var json_data = {
-                cloudPayments: {
-                    customerReceipt: {
-                        Items: [
-                            {
-                                label: 'Пожертвование',
-                                price: amount,
-                                quantity: 1,
-                                amount: amount,
-                                vat: 0,
-                                method: 0,
-                                object: 0
-                            }
-                        ],
-                        taxationSystem: 0,
-                        email: email,
-                        phone: phone
-                    }
-                }
+            options.recurrent = {
+                interval: 'Month',
+                period: 1,
+                receipt: receiptData // чек для регулярного платежа
             };
-
-            options.data = json_data;
-
-            options.userInfo = {
-                firstName: firstName,
-                lastName: lastName,
-                middleName: middleName,
-                fullName: fullName,
-                phone: phone,
-                email: email,
-                comment: comment
-            };
-            delete options.receipt;
+        } else {
+            // Одноразовый платёж: чек добавляем на верхний уровень
+            options.receipt = receiptData;
         }
 
         widget.pay('charge', options, {
